@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Breakdown Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .currency-symbol {
+            position: absolute;
+            left: 15px;
+            font-size: 20px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 15px 15px 15px 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .receipt {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            border-left: 4px solid #667eea;
+        }
+
+        .receipt-title {
+            text-align: center;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px dashed #ddd;
+        }
+
+        .denomination-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .denomination-item:last-child {
+            border-bottom: none;
+        }
+
+        .denomination-value {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .denomination-count {
+            color: #555;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #c33;
+            display: none;
+        }
+
+        .info-message {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #1976d2;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Currency Breakdown Calculator</h1>
+        
+        <div class="input-group">
+            <label for="amount">Enter Amount</label>
+            <div class="input-wrapper">
+                <span class="currency-symbol">₹</span>
+                <input type="number" id="amount" placeholder="Enter amount" min="0" step="1">
+            </div>
+        </div>
+
+        <button onclick="calculateBreakdown()">Calculate Breakdown</button>
+
+        <div class="error-message" id="errorMessage"></div>
+        <div class="info-message" id="infoMessage"></div>
+        
+        <div class="result" id="result">
+            <div class="receipt">
+                <div class="receipt-title">------ Currency Breakdown ------</div>
+                <div id="breakdownList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class Currency {
+            getSymbol() {
+                throw new Error("Method must be implemented");
+            }
+            
+            getDenominations() {
+                throw new Error("Method must be implemented");
+            }
+        }
+
+        class INR extends Currency {
+            getSymbol() {
+                return "₹";
+            }
+            
+            getDenominations() {
+                return [500, 200, 100, 50, 20, 10];
+            }
+        }
+
+        class DenominationCalculator {
+            calculateBreakdown(amount, currency) {
+                const result = new Map();
+                const notes = currency.getDenominations();
+                
+                for (let note of notes) {
+                    if (amount >= note) {
+                        const count = Math.floor(amount / note);
+                        amount = amount % note;
+                        result.set(note, count);
+                    }
+                }
+                
+                return result;
+            }
+            
+            generateReceipt(breakdown, symbol) {
+                let html = '';
+                
+                for (let [denomination, count] of breakdown) {
+                    html += `
+                        <div class="denomination-item">
+                            <span class="denomination-value">${symbol} ${denomination}</span>
+                            <span class="denomination-count">${count} note${count > 1 ? 's' : ''}</span>
+                        </div>
+                    `;
+                }
+                
+                return html;
+            }
+        }
+
+        const calculator = new DenominationCalculator();
+        const currency = new INR();
+
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('infoMessage').style.display = 'none';
+            document.getElementById('result').style.display = 'none';
+        }
+
+        function showError(message) {
+            hideMessages();
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function showInfo(message) {
+            hideMessages();
+            const infoDiv = document.getElementById('infoMessage');
+            infoDiv.textContent = message;
+            infoDiv.style.display = 'block';
+        }
+
+        function calculateBreakdown() {
+            const amountInput = document.getElementById('amount');
+            const amount = amountInput.value.trim();
+
+            if (amount === '') {
+                showError('Error: Please enter an amount.');
+                return;
+            }
+
+            const numAmount = Number(amount);
+
+            if (!Number.isInteger(numAmount) || numAmount !== parseFloat(amount)) {
+                showError('Error: Invalid input. Please enter a numeric integer value.');
+                return;
+            }
+
+            if (numAmount < 0) {
+                showError('Error: Amount cannot be negative.');
+                return;
+            }
+
+            if (numAmount === 0) {
+                showInfo('No breakdown is required/possible.');
+                return;
+            }
+
+            const breakdown = calculator.calculateBreakdown(numAmount, currency);
+            const receiptHTML = calculator.generateReceipt(breakdown, currency.getSymbol());
+            
+            document.getElementById('breakdownList').innerHTML = receiptHTML;
+            hideMessages();
+            document.getElementById('result').style.display = 'block';
+        }
+
+        document.getElementById('amount').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                calculateBreakdown();
+            }
+        });
+    </script>
+</body>
+</html>
