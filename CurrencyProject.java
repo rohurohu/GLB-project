@@ -4,11 +4,9 @@ abstract class Currency {
     abstract int[] getDenominations();
 }
 class INR extends Currency {
-    @Override
     String getSymbol() {
         return "₹";
     }
-    @Override
     int[] getDenominations() {
         return new int[]{500, 200, 100, 50, 20, 10};
     }
